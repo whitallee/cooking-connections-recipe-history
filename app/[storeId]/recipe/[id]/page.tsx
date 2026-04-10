@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import SavePhotoButton from '@/components/SavePhotoButton'
 import type { Ingredient } from '@/lib/supabase/types'
 
@@ -51,10 +52,13 @@ export default async function CustomerRecipePage({
 
       {/* Food photo */}
       {recipe.thumbnail_url && (
-        <img
+        <Image
           src={recipe.thumbnail_url}
           alt={recipe.title}
+          width={900}
+          height={600}
           className="mb-6 w-full rounded-xl object-cover max-h-96"
+          sizes="(max-width: 768px) 100vw, 800px"
         />
       )}
 
@@ -139,10 +143,13 @@ export default async function CustomerRecipePage({
               <h2 className="mb-3 text-base font-semibold text-zinc-900">
                 Recipe card
               </h2>
-              <img
+              <Image
                 src={recipe.image_url}
                 alt="Recipe card"
+                width={800}
+                height={1050}
                 className="w-full rounded-lg border border-zinc-200"
+                sizes="(max-width: 768px) 100vw, 800px"
               />
             </div>
           )}

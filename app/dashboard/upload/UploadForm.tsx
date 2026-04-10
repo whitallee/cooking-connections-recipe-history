@@ -29,6 +29,7 @@ function PhotoInput({
       <span className="text-sm font-medium text-zinc-700">{label}</span>
       {preview ? (
         <div className="relative">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={preview}
             alt="Preview"
@@ -228,7 +229,7 @@ export default function UploadForm() {
           <span className="ml-2 text-xs font-normal text-zinc-400">optional</span>
         </h2>
         <p className="mb-4 text-sm text-zinc-500">
-          Upload or photograph the printed recipe card and we'll fill in the form
+          Upload or photograph the printed recipe card and we&apos;ll fill in the form
           automatically. You can edit anything afterwards.
         </p>
 

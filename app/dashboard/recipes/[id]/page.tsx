@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import type { Ingredient } from '@/lib/supabase/types'
 import LogServingButton from './LogServingButton'
 import DeleteButton from './DeleteButton'
@@ -112,10 +113,13 @@ export default async function RecipeDetailPage({
         {/* Left column */}
         <div className="flex flex-col gap-4">
           {recipe.thumbnail_url && (
-            <img
+            <Image
               src={recipe.thumbnail_url}
               alt={recipe.title}
+              width={900}
+              height={600}
               className="w-full rounded-lg object-cover"
+              sizes="(max-width: 1024px) 100vw, 50vw"
             />
           )}
 
@@ -161,10 +165,13 @@ export default async function RecipeDetailPage({
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
                 Recipe card
               </p>
-              <img
+              <Image
                 src={recipe.image_url}
                 alt="Recipe card"
+                width={800}
+                height={1050}
                 className="w-full rounded-lg border border-zinc-200"
+                sizes="(max-width: 1024px) 100vw, 50vw"
               />
             </div>
           )}

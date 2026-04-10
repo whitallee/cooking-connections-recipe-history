@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import type { Recipe } from '@/lib/supabase/types'
 import RecipeFallbackIcon from '@/components/RecipeFallbackIcon'
 
@@ -11,11 +12,15 @@ function RecipeCard({ recipe, storeId }: { recipe: Partial<Recipe> & { id: strin
       className="group flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm transition-all"
     >
       {recipe.thumbnail_url ? (
-        <img
-          src={recipe.thumbnail_url}
-          alt={recipe.title}
-          className="h-40 w-full object-cover"
-        />
+        <div className="relative h-40 w-full">
+          <Image
+            src={recipe.thumbnail_url}
+            alt={recipe.title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          />
+        </div>
       ) : (
         <RecipeFallbackIcon className="h-40 w-full" />
       )}
@@ -70,12 +75,13 @@ export default async function StorePage({
     .order('recipe_date', { ascending: false })
 
   // Archive query — filtered by search params, checks served_dates array for date range
-  const { data: recipes } = await admin.rpc('search_store_recipes', {
+  const { data: recipesRaw } = await admin.rpc('search_store_recipes', {
     p_store_id: storeId,
     p_q: q?.trim() || null,
     p_from: from || null,
     p_to: to || null,
   })
+  const recipes = recipesRaw as Array<{ id: string; title: string; recipe_date: string; thumbnail_url: string | null; tags: string[] }> | null
 
   const hasFilter = !!(q || from || to)
 
@@ -97,7 +103,7 @@ export default async function StorePage({
             <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-700">
               ★ Currently Featured
             </span>
-            <p className="text-sm text-zinc-500">This week's promoted recipes</p>
+            <p className="text-sm text-zinc-500">This week&apos;s promoted recipes</p>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {featured.map((recipe) => (

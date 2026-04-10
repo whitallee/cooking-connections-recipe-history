@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
+import Image from 'next/image'
 import RecipeFallbackIcon from '@/components/RecipeFallbackIcon'
 import { featureRecipe, unfeatureRecipe } from './actions'
 
@@ -91,7 +92,7 @@ type RecipeRow = {
   thumbnail_url: string | null
   is_featured: boolean
   featured_end_date: string | null
-  profiles: { full_name: string } | null
+  profiles: { full_name: string }[] | null
 }
 
 function RecipeTable({ recipes, today }: { recipes: RecipeRow[]; today: string }) {
@@ -118,9 +119,11 @@ function RecipeTable({ recipes, today }: { recipes: RecipeRow[]; today: string }
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     {recipe.thumbnail_url ? (
-                      <img
+                      <Image
                         src={recipe.thumbnail_url}
                         alt={recipe.title}
+                        width={40}
+                        height={40}
                         className="h-10 w-10 shrink-0 rounded-md object-cover"
                       />
                     ) : (
@@ -130,8 +133,8 @@ function RecipeTable({ recipes, today }: { recipes: RecipeRow[]; today: string }
                       <p className="truncate font-medium text-zinc-900">{recipe.title}</p>
                       <p className="text-xs text-zinc-400">
                         {recipe.recipe_date}
-                        {recipe.profiles?.full_name && (
-                          <> · {recipe.profiles.full_name}</>
+                        {recipe.profiles?.[0]?.full_name && (
+                          <> · {recipe.profiles[0].full_name}</>
                         )}
                       </p>
                     </div>

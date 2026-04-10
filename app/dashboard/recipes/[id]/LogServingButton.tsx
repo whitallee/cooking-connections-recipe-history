@@ -7,7 +7,7 @@ type State = { error?: string } | null
 
 export default function LogServingButton({ recipeId }: { recipeId: string }) {
   const [state, formAction, pending] = useActionState<State, FormData>(
-    async (_prev, _formData) => logServing(recipeId),
+    async () => logServing(recipeId),
     null
   )
 

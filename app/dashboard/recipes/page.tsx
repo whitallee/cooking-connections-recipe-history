@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import Image from 'next/image'
 import RecipeFallbackIcon from '@/components/RecipeFallbackIcon'
 
 export default async function MyRecipesPage() {
@@ -41,9 +42,11 @@ export default async function MyRecipesPage() {
                 className="flex items-center gap-4 px-4 py-3 hover:bg-zinc-50 transition-colors"
               >
                 {recipe.thumbnail_url ? (
-                  <img
+                  <Image
                     src={recipe.thumbnail_url}
                     alt={recipe.title}
+                    width={56}
+                    height={56}
                     className="h-14 w-14 shrink-0 rounded-lg object-cover"
                   />
                 ) : (
@@ -68,7 +71,7 @@ export default async function MyRecipesPage() {
         </div>
       ) : (
         <div className="rounded-lg border border-dashed border-zinc-200 bg-white px-6 py-16 text-center">
-          <p className="text-sm text-zinc-500">You haven't uploaded any recipes yet.</p>
+          <p className="text-sm text-zinc-500">You haven&apos;t uploaded any recipes yet.</p>
           <Link
             href="/dashboard/upload"
             className="mt-3 inline-block text-sm font-medium text-zinc-900 underline underline-offset-2"

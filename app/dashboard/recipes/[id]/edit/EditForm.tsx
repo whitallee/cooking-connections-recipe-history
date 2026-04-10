@@ -22,6 +22,7 @@ function PhotoInput({
       <span className="text-sm font-medium text-zinc-700">{label}</span>
       {preview ? (
         <div className="relative">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={preview}
             alt="Preview"
