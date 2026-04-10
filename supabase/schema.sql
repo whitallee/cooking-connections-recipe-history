@@ -75,13 +75,10 @@ CREATE POLICY "profiles_own_read" ON profiles
 CREATE POLICY "profiles_own_update" ON profiles
   FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 
--- profiles: admins can read all profiles (for /admin/users page)
-CREATE POLICY "profiles_admin_read" ON profiles
-  FOR SELECT USING (
-    EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = 'admin')
-  );
-
--- profiles: insert is done via service role key only (admin invite flow)
+-- profiles: insert and admin reads are done via service role key only.
+-- All admin-facing queries use createAdminClient() which bypasses RLS.
+-- A "profiles_admin_read" policy was intentionally omitted because querying
+-- profiles from within a profiles policy causes recursive evaluation errors.
 -- no user-facing insert policy needed
 
 -- recipes: anyone can read (customers are unauthenticated)
