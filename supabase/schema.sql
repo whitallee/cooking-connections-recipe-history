@@ -39,6 +39,7 @@ CREATE TABLE recipes (
   thumbnail_url   TEXT,              -- food photo shown in recipe lists
   raw_ocr_data    JSONB,
   recipe_date     DATE NOT NULL DEFAULT CURRENT_DATE,
+  served_dates    DATE[] NOT NULL DEFAULT '{}',
   is_featured     BOOLEAN NOT NULL DEFAULT FALSE,
   featured_end_date DATE,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),

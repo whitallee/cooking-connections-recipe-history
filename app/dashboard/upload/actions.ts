@@ -184,6 +184,7 @@ export async function saveRecipe(formData: FormData): Promise<SaveResult> {
       thumbnail_url: thumbnailUrl,
       raw_ocr_data: rawOcr ? JSON.parse(rawOcr) : null,
       recipe_date: recipeDate,
+      served_dates: [recipeDate],
     })
     .select('id')
     .single()

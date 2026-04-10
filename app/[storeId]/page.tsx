@@ -69,22 +69,13 @@ export default async function StorePage({
     .or(`featured_end_date.is.null,featured_end_date.gte.${today}`)
     .order('recipe_date', { ascending: false })
 
-  // Archive query — filtered by search params
-  let archiveQuery = admin
-    .from('recipes')
-    .select('id, title, recipe_date, thumbnail_url, tags')
-    .eq('store_id', storeId)
-    .order('recipe_date', { ascending: false })
-
-  if (q?.trim()) {
-    archiveQuery = archiveQuery.or(
-      `title.ilike.%${q.trim()}%,description.ilike.%${q.trim()}%`
-    )
-  }
-  if (from) archiveQuery = archiveQuery.gte('recipe_date', from)
-  if (to) archiveQuery = archiveQuery.lte('recipe_date', to)
-
-  const { data: recipes } = await archiveQuery
+  // Archive query — filtered by search params, checks served_dates array for date range
+  const { data: recipes } = await admin.rpc('search_store_recipes', {
+    p_store_id: storeId,
+    p_q: q?.trim() || null,
+    p_from: from || null,
+    p_to: to || null,
+  })
 
   const hasFilter = !!(q || from || to)
 

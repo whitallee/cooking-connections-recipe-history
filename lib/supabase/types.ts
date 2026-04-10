@@ -39,6 +39,7 @@ export interface Recipe {
   thumbnail_url: string | null
   raw_ocr_data: Record<string, unknown> | null
   recipe_date: string
+  served_dates: string[]
   is_featured: boolean
   featured_end_date: string | null
   created_at: string
