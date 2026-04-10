@@ -6,36 +6,34 @@ A store-scoped recipe archive for the Cooking Connections sampling kitchen. Cust
 
 ## Tech Stack
 
-| Layer | Choice | Reason |
-|---|---|---|
-| Framework | Next.js 16 (App Router) | Already scaffolded |
-| Database | Supabase (PostgreSQL) | Auth + DB + Storage in one platform |
-| Auth | Supabase Auth | Built into the platform, no extra service |
-| Image Storage | Supabase Storage | Free tier, same client as DB/Auth |
-| OCR / Vision | OpenAI GPT-4o Vision | Familiar, strong structured output |
-| Hosting | Vercel | Optimal for Next.js App Router |
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Database | Supabase (PostgreSQL + Auth + Storage) |
+| OCR / Vision | OpenAI GPT-4o Vision |
+| Image Processing | Sharp |
+| Hosting | Vercel |
 
 ---
 
 ## URL Structure
 
-All customer-facing routes are scoped to a store number so any store can adopt the app by pointing their QR code at their store ID.
-
 ```
-/                          → Root landing (redirects or shows store lookup)
-/[storeId]                 → Customer page: featured recipes + search
-/[storeId]/recipe/[id]     → Individual recipe detail + photo
+/                          → Store finder (auto-redirects if only one store)
+/[storeId]                 → Customer page: featured recipes + search archive
+/[storeId]/recipe/[id]     → Individual recipe detail + save photo
 
-/login                     → Chef login
-/change-password           → Forced password change (on first login)
+/login                     → Culinary Selling Partner login
+/change-password           → Forced password change on first login
 /dashboard                 → Chef home (recent uploads, quick actions)
-/dashboard/upload          → Upload a new recipe card
-/dashboard/recipes         → Manage your own uploaded recipes
-/dashboard/recipes/[id]    → Edit a saved recipe
+/dashboard/upload          → Upload a new recipe card via OCR
+/dashboard/recipes         → View and manage your uploaded recipes
+/dashboard/recipes/[id]    → Recipe detail: served dates, log serving, edit, delete
+/dashboard/recipes/[id]/edit → Edit a saved recipe
 
-/admin                     → Admin dashboard (admin role required)
-/admin/users               → Manage partner accounts, send invites
-/admin/recipes             → Manage all recipes, mark featured
+/admin                     → Redirects to /admin/users
+/admin/users               → Manage partner accounts and send invites
+/admin/recipes             → Manage all store recipes, toggle featured status
 ```
 
 > There is no public `/signup` route. All chef accounts are created by admins via the invite form at `/admin/users`.
@@ -49,7 +47,6 @@ All customer-facing routes are scoped to a store number so any store can adopt t
 |---|---|---|
 | `id` | `TEXT` (PK) | Corporate store number, e.g. `"451"` |
 | `name` | `TEXT` | Store display name |
-| `created_at` | `TIMESTAMPTZ` | |
 
 ### `profiles`
 Extends Supabase `auth.users`. One row per chef account.
@@ -58,172 +55,100 @@ Extends Supabase `auth.users`. One row per chef account.
 |---|---|---|
 | `id` | `UUID` (PK) | References `auth.users.id` |
 | `full_name` | `TEXT` | |
-| `store_id` | `TEXT` | References `stores.id`, set by admin at invite time |
-| `role` | `TEXT` | `'chef'` or `'admin'`, default `'chef'` |
-| `must_change_password` | `BOOLEAN` | `true` on account creation; cleared after first password change |
-| `created_at` | `TIMESTAMPTZ` | |
+| `email` | `TEXT` | |
+| `store_id` | `TEXT` | References `stores.id` |
+| `role` | `TEXT` | `'chef'` or `'admin'` |
+| `must_change_password` | `BOOLEAN` | `true` on creation; cleared after first password change |
 
 ### `recipes`
 | Column | Type | Notes |
 |---|---|---|
-| `id` | `UUID` (PK) | Auto-generated |
-| `store_id` | `TEXT` | References `stores.id`, copied from uploader's profile |
+| `id` | `UUID` (PK) | |
+| `store_id` | `TEXT` | Copied from uploader's profile |
 | `uploaded_by` | `UUID` | References `profiles.id` |
 | `title` | `TEXT` | |
-| `description` | `TEXT` | Optional short blurb |
-| `ingredients` | `JSONB` | Array of `{ item, quantity, unit }` objects |
-| `instructions` | `TEXT` | Step-by-step directions |
+| `description` | `TEXT` | Optional |
+| `ingredients` | `JSONB` | Array of `{ item, quantity, unit }` |
+| `instructions` | `TEXT` | |
 | `servings` | `TEXT` | e.g. `"4–6 servings"` |
 | `prep_time` | `TEXT` | e.g. `"10 min"` |
 | `cook_time` | `TEXT` | e.g. `"25 min"` |
-| `tags` | `TEXT[]` | e.g. `["vegetarian", "quick"]` |
-| `promo_products` | `TEXT[]` | Products on sale that the recipe features |
-| `image_url` | `TEXT` | Public URL from Supabase Storage |
+| `tags` | `TEXT[]` | |
+| `promo_products` | `TEXT[]` | Products on sale featured in the recipe |
+| `image_url` | `TEXT` | Recipe card photo URL (Supabase Storage) |
+| `thumbnail_url` | `TEXT` | Food photo URL (Supabase Storage) |
 | `raw_ocr_data` | `JSONB` | Full OpenAI Vision response, kept for debugging |
-| `recipe_date` | `DATE` | Date the recipe was promoted/cooked — used for customer date filtering |
+| `recipe_date` | `DATE` | Most recently served date — used for sorting |
+| `served_dates` | `DATE[]` | All dates this recipe has been served |
 | `is_featured` | `BOOLEAN` | Set by admin only |
-| `featured_end_date` | `DATE` | When the promo ends; featured status is inactive after this date |
+| `featured_end_date` | `DATE` | Featured status expires after this date |
 | `created_at` | `TIMESTAMPTZ` | |
-| `updated_at` | `TIMESTAMPTZ` | |
+| `updated_at` | `TIMESTAMPTZ` | Auto-updated via trigger |
 
-> **Featured logic:** A recipe is considered actively featured when `is_featured = true AND (featured_end_date IS NULL OR featured_end_date >= CURRENT_DATE)`. End date is set by the admin at the time of featuring — once a coupon period ends the recipe falls off automatically without any manual cleanup.
+> **Featured logic:** A recipe is actively featured when `is_featured = true AND (featured_end_date IS NULL OR featured_end_date >= CURRENT_DATE)`.
+
+> **Date filtering:** Customer date range search queries `served_dates` (not just `recipe_date`) via the `search_store_recipes` Postgres function so any serving occasion is matched.
 
 ---
 
 ## Key Feature Flows
 
 ### Customer — Browse Recipes
-1. Scan QR code → land on `/451` (store-scoped)
-2. Page loads featured recipes section at top (active featured only)
-3. Below: full recipe archive with search bar + date range filter
-4. Click any recipe → `/451/recipe/[id]` shows recipe card photo + structured data
-5. "Save Photo" button triggers a browser download of the recipe card image
+1. Scan QR code → land on `/[storeId]`
+2. Featured recipes appear at top (active only)
+3. Full archive below with search + date range filter (searches all served dates)
+4. Click any recipe → detail page with food photo, ingredients, instructions, and recipe card image
+5. "Save Photo" button triggers native share sheet on mobile or browser download on desktop
 
 ### Chef — Upload a Recipe Card
-1. Log in at `/login` → redirected to `/dashboard`
-2. Go to `/dashboard/upload`
-3. Select or photograph a recipe card image
-4. Image uploads to Supabase Storage → returns a public URL
-5. URL is sent to OpenAI GPT-4o Vision with a structured extraction prompt
-6. Extracted data (title, ingredients, instructions, times, servings) pre-fills a form
-7. Chef reviews and edits every field before submitting
-8. On submit: recipe row saved with `store_id` from chef's profile, `uploaded_by` set to chef's ID, and `recipe_date` set (defaulting to today, editable)
-9. Recipe is immediately searchable by customers of that store
+1. Log in → `/dashboard/upload`
+2. Photograph or select a recipe card image (JPEG, PNG, WebP, or HEIC)
+3. Image is normalised via Sharp, uploaded to Supabase Storage, then sent to GPT-4o Vision
+4. Extracted fields pre-fill the form — chef reviews and corrects before saving
+5. On submit: recipe saved with `store_id` from profile, `recipe_date` and `served_dates` seeded to today
 
-### Admin — Mark a Recipe as Featured
-1. Log in with an admin account → `/admin/recipes`
-2. Find a recipe, click "Mark as Featured"
-3. Set a featured end date (when the promo/coupon ends)
-4. Save → `is_featured = true`, `featured_end_date` set
-5. Recipe appears in the featured section on the customer page until end date passes
+### Chef — Log Another Serving
+1. Open any recipe from `/dashboard/recipes`
+2. Click "Log serving for today" — available to any chef at the same store
+3. Today's date is appended to `served_dates` and `recipe_date` is updated
+
+### Admin — Feature a Recipe
+1. `/admin/recipes` → find a recipe → set an optional end date → click "Feature"
+2. Recipe appears in the featured section on the customer page until end date passes
 
 ### Admin — Invite a New Chef
-1. Admin goes to `/admin/users` → clicks "Invite Partner"
-2. Admin fills out: full name, email, store, and a temporary password
-3. Server Action uses the Supabase service role key to call `auth.admin.createUser()` — creates the account with `email_confirm: true` (no email confirmation step needed)
-4. A `profiles` row is inserted: `store_id` from the form, `role = 'chef'`, `must_change_password = true`
-5. Admin shares the email + temporary password with the chef directly (in person or via internal message)
-
-### Chef — First Login (Password Change)
-1. Chef logs in at `/login` with the temporary credentials the admin provided
-2. After successful auth, the session is checked for `must_change_password = true`
-3. Chef is redirected to `/change-password` — they cannot access any other protected route until this is complete
-4. Chef sets their new password → Supabase `auth.updateUser()` is called
-5. `must_change_password` is set to `false` on the profile
-6. Chef is redirected to `/dashboard`
+1. `/admin/users` → fill out name, email, store, and temporary password
+2. Account created via Supabase service role (no email confirmation step)
+3. Chef logs in with temp credentials → forced to `/change-password` before accessing anything else
 
 ---
 
 ## Roles & Permissions
 
-| Action | Guest (Customer) | Chef | Admin |
+| Action | Customer | Chef | Admin |
 |---|---|---|---|
-| Browse recipes for their store | Yes | Yes | Yes |
-| View recipe detail + save photo | Yes | Yes | Yes |
+| Browse recipes | Yes | Yes | Yes |
+| Save recipe photo | Yes | Yes | Yes |
 | Upload recipe card | No | Yes | Yes |
+| Log a serving | No | Yes (same store) | Yes (same store) |
 | Edit own recipe | No | Yes | Yes |
-| Edit any recipe | No | No | Yes |
+| Edit any store recipe | No | No | Yes (same store) |
+| Delete recipe | No | Yes (own) | Yes (same store) |
 | Mark recipe as featured | No | No | Yes |
-| Manage user roles | No | No | Yes |
-| Invite new chefs | No | No | Yes |
+| Invite / manage chefs | No | No | Yes |
 
-Row-level security (RLS) policies in Supabase enforce these at the database level, not just the UI.
-
----
-
-## Branding
-
-- **Department name:** Cooking Connections
-- **Logo:** Placeholder in the header — upload final asset to `/public/logo.png` or swap the `<img src>` in the shared `Header` component
-- The header and footer are shared across all pages via the root layout
+RLS policies in Supabase enforce these at the database level.
 
 ---
 
-## OpenAI Vision Prompt (extraction target)
+## Image Processing
 
-When a recipe card image is submitted, the API call asks for a JSON response with this shape:
+All uploaded images (food photos and recipe cards) are run through Sharp before storage:
+- HEIC/HEIF files are converted to JPEG
+- Images are resized to fit within a max dimension (2000px for recipe cards, 1600px for food photos)
+- Compressed to JPEG at 85–90% quality
 
-```json
-{
-  "title": "",
-  "description": "",
-  "servings": "",
-  "prep_time": "",
-  "cook_time": "",
-  "ingredients": [
-    { "item": "", "quantity": "", "unit": "" }
-  ],
-  "instructions": "",
-  "tags": []
-}
-```
-
-The raw response is stored in `raw_ocr_data` on the recipe row for debugging and re-processing if needed.
-
----
-
-## Supabase Storage
-
-- Bucket name: `recipe-cards`
-- Access: public read (so image URLs work without auth for customers)
-- Upload path: `{storeId}/{recipeId}/{filename}`
-- Max file size: 10MB (configurable in Supabase dashboard)
-
----
-
-## Build Phases
-
-### Phase 1 — Foundation
-- [ ] Supabase project: create tables, RLS policies, storage bucket
-- [ ] Environment variables wired up (`.env.local`)
-- [ ] Install dependencies: `@supabase/supabase-js`, `openai`
-- [ ] Shared layout: header (logo placeholder + "Cooking Connections"), footer
-- [ ] Store-scoped routing (`/[storeId]`)
-
-### Phase 2 — Customer Pages
-- [ ] `/[storeId]` — featured recipes section + search/filter UI
-- [ ] `/[storeId]/recipe/[id]` — recipe detail with save photo button
-- [ ] Date range filter on recipe archive
-- [ ] Search by title, ingredient, or tag
-
-### Phase 3 — Chef Auth & Dashboard
-- [ ] `/login` and session handling
-- [ ] `/change-password` — forced on first login, guarded in middleware
-- [ ] `/dashboard` — chef home
-- [ ] `/dashboard/upload` — image upload → Vision OCR → editable form → save
-- [ ] `/dashboard/recipes` — list and edit own recipes
-
-### Phase 4 — Admin
-- [ ] Admin role guard (middleware or layout check)
-- [ ] `/admin/recipes` — all recipes, featured toggle + end date picker
-- [ ] `/admin/users` — view accounts, promote to admin, invite form (name/email/store/temp password)
-
-### Phase 5 — Polish
-- [ ] Mobile-first responsive design review
-- [ ] Logo swap from placeholder to final asset
-- [ ] Error states, loading skeletons
-- [ ] Image optimization (Next.js `<Image>`)
-- [ ] Accessibility pass
+The header logo and favicon are pre-generated smaller variants in `/public` and `/app`.
 
 ---
 
@@ -236,4 +161,22 @@ SUPABASE_SERVICE_ROLE_KEY=
 OPENAI_API_KEY=
 ```
 
-> `SUPABASE_SERVICE_ROLE_KEY` is used server-side only (API routes/Server Actions) for admin operations that bypass RLS. Never expose it to the client.
+> `SUPABASE_SERVICE_ROLE_KEY` is server-side only. Never expose it to the client.
+
+---
+
+## Deploying to Vercel
+
+1. Add the four environment variables above in the Vercel project settings
+2. In Supabase → **Auth → URL Configuration**: add your `https://your-app.vercel.app` to allowed redirect URLs
+3. In Supabase → **Storage**: confirm the `recipe-cards` bucket exists and is set to public
+4. If using a fresh production Supabase project, run `supabase/schema.sql` then the `search_store_recipes` function from the setup notes
+
+---
+
+## Remaining TODOs
+
+- **Duplicate recipe detection** — warn the chef during upload if a recipe with the same title already exists, and offer "log as another serving" instead of creating a duplicate
+- **Forgot password flow** — currently no self-service password reset; admins must handle resets via the Supabase dashboard
+- **Accessibility pass** — keyboard navigation and screen reader review across all forms
+- **Tag search on customer page** — date and text search exist; filtering by tag does not
