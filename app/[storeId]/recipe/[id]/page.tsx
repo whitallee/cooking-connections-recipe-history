@@ -12,12 +12,10 @@ export default async function CustomerRecipePage({
   const { storeId, id } = await params
   const admin = createAdminClient()
 
-  const { data: recipe } = await admin
-    .from('recipes')
-    .select('*')
-    .eq('id', id)
-    .eq('store_id', storeId)
-    .single()
+  const [{ data: recipe }, { data: store }] = await Promise.all([
+    admin.from('recipes').select('*').eq('id', id).eq('store_id', storeId).single(),
+    admin.from('stores').select('name').eq('id', storeId).single(),
+  ])
 
   if (!recipe) notFound()
 
@@ -25,6 +23,16 @@ export default async function CustomerRecipePage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
+      {/* Store header */}
+      {store && (
+        <div className="mb-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+            {store.name}
+          </p>
+          <h2 className="mt-1 text-lg font-semibold text-zinc-900">Recipe History</h2>
+        </div>
+      )}
+
       {/* Breadcrumb */}
       <nav className="mb-6 text-sm text-zinc-500">
         <Link href={`/${storeId}`} className="hover:text-zinc-900 transition-colors">
