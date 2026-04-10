@@ -95,18 +95,6 @@ export default async function CustomerRecipePage({
         </div>
       )}
 
-      {/* Featured products */}
-      {recipe.promo_products?.length > 0 && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-700">
-            On sale this week
-          </p>
-          <p className="text-sm text-amber-900">
-            {(recipe.promo_products as string[]).join(' · ')}
-          </p>
-        </div>
-      )}
-
       {/* Ingredients + Instructions */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr]">
         {recipe.ingredients?.length > 0 && (

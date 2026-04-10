@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Recipe } from '@/lib/supabase/types'
 import RecipeFallbackIcon from '@/components/RecipeFallbackIcon'
+import FilterPanel from './FilterPanel'
 
 function RecipeCard({ recipe, storeId }: { recipe: Partial<Recipe> & { id: string; title: string; recipe_date: string }; storeId: string }) {
   return (
@@ -115,48 +116,29 @@ export default async function StorePage({
 
       {/* Search & Filter */}
       <section className="mb-6">
-        <form method="GET" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-          {/* Search input + action buttons */}
-          <div className="flex flex-1 gap-2">
-            <input
-              name="q"
-              type="search"
-              defaultValue={q ?? ''}
-              placeholder="Search recipes…"
-              className="min-w-0 flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-            />
-            <button
-              type="submit"
-              className="shrink-0 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 transition-colors"
+        <form method="GET" className="flex gap-2">
+          <input
+            name="q"
+            type="search"
+            defaultValue={q ?? ''}
+            placeholder="Search recipes…"
+            className="min-w-0 flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+          />
+          <FilterPanel from={from} to={to} />
+          <button
+            type="submit"
+            className="shrink-0 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 transition-colors"
+          >
+            Search
+          </button>
+          {hasFilter && (
+            <Link
+              href={`/${storeId}`}
+              className="shrink-0 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors"
             >
-              Search
-            </button>
-            {hasFilter && (
-              <Link
-                href={`/${storeId}`}
-                className="shrink-0 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors"
-              >
-                Clear
-              </Link>
-            )}
-          </div>
-
-          {/* Date filters — own row on mobile, inline on sm+ */}
-          <div className="flex items-center gap-2">
-            <input
-              name="from"
-              type="date"
-              defaultValue={from ?? ''}
-              className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-            />
-            <span className="text-sm text-zinc-400">to</span>
-            <input
-              name="to"
-              type="date"
-              defaultValue={to ?? ''}
-              className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-            />
-          </div>
+              Clear
+            </Link>
+          )}
         </form>
       </section>
 

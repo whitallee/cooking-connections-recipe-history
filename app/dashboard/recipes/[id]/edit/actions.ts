@@ -91,7 +91,6 @@ export async function updateRecipe(
       prep_time: (formData.get('prep_time') as string)?.trim() || null,
       cook_time: (formData.get('cook_time') as string)?.trim() || null,
       tags: split(formData.get('tags') as string),
-      promo_products: split(formData.get('promo_products') as string),
       thumbnail_url: thumbnailUrl,
       image_url: imageUrl,
     })

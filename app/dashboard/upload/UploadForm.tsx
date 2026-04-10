@@ -105,7 +105,6 @@ export default function UploadForm() {
   const [cookTime, setCookTime] = useState('')
   const [instructions, setInstructions] = useState('')
   const [ingredients, setIngredients] = useState<Ingredient[]>([emptyIngredient()])
-  const [promoProducts, setPromoProducts] = useState('')
   const [tags, setTags] = useState('')
 
   // Food photo
@@ -166,8 +165,6 @@ export default function UploadForm() {
     if (d.instructions) setInstructions(d.instructions as string)
     if (Array.isArray(d.ingredients) && (d.ingredients as unknown[]).length > 0)
       setIngredients(d.ingredients as Ingredient[])
-    if (Array.isArray(d.promo_products))
-      setPromoProducts((d.promo_products as string[]).join(', '))
     if (Array.isArray(d.tags)) setTags((d.tags as string[]).join(', '))
   }
 
@@ -204,7 +201,6 @@ export default function UploadForm() {
     fd.append('cook_time', cookTime)
     fd.append('instructions', instructions)
     fd.append('ingredients', JSON.stringify(ingredients.filter((i) => i.item.trim())))
-    fd.append('promo_products', promoProducts)
     fd.append('tags', tags)
     fd.append('card_url', cardUrl)
     fd.append('raw_ocr_data', rawOcrData)
@@ -314,7 +310,7 @@ export default function UploadForm() {
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1">
               <label htmlFor="recipe_date" className="text-sm font-medium text-zinc-700">
                 Recipe date
@@ -338,19 +334,6 @@ export default function UploadForm() {
                 onChange={(e) => setServings(e.target.value)}
                 className={inputClass}
                 placeholder="e.g. 4 servings"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="promo_products" className="text-sm font-medium text-zinc-700">
-                Featured products
-              </label>
-              <input
-                id="promo_products"
-                type="text"
-                value={promoProducts}
-                onChange={(e) => setPromoProducts(e.target.value)}
-                className={inputClass}
-                placeholder="Comma-separated"
               />
             </div>
           </div>

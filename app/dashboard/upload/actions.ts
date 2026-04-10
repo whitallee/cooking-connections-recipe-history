@@ -73,7 +73,6 @@ export async function extractFromCard(
   "cook_time": "e.g. 25 min",
   "ingredients": [{ "quantity": "amount", "unit": "unit of measure or empty string", "item": "ingredient name" }],
   "instructions": "full step-by-step instructions as a single string, newline between each step",
-  "promo_products": ["on-sale or featured products mentioned on the card"],
   "tags": ["relevant tags like vegetarian, quick, gluten-free, etc"]
 }`,
           },
@@ -153,7 +152,6 @@ export async function saveRecipe(formData: FormData): Promise<SaveResult> {
       prep_time: (formData.get('prep_time') as string)?.trim() || null,
       cook_time: (formData.get('cook_time') as string)?.trim() || null,
       tags: split(formData.get('tags') as string),
-      promo_products: split(formData.get('promo_products') as string),
       image_url: cardUrl,
       thumbnail_url: thumbnailUrl,
       raw_ocr_data: rawOcr ? JSON.parse(rawOcr) : null,

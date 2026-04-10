@@ -55,7 +55,6 @@ export default async function EditRecipePage({
           instructions: recipe.instructions ?? '',
           ingredients: (recipe.ingredients as Ingredient[]) ?? [],
           tags: (recipe.tags as string[]).join(', '),
-          promoProducts: (recipe.promo_products as string[]).join(', '),
           thumbnailUrl: recipe.thumbnail_url ?? '',
           imageUrl: recipe.image_url ?? '',
         }}

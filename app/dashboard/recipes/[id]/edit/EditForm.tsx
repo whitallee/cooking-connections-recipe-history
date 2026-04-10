@@ -76,7 +76,6 @@ interface Props {
     instructions: string
     ingredients: Ingredient[]
     tags: string
-    promoProducts: string
     thumbnailUrl: string
     imageUrl: string
   }
@@ -93,7 +92,6 @@ export default function EditForm({ recipeId, initial }: Props) {
     initial.ingredients.length > 0 ? initial.ingredients : [emptyIngredient()]
   )
   const [tags, setTags] = useState(initial.tags)
-  const [promoProducts, setPromoProducts] = useState(initial.promoProducts)
 
   const [foodFile, setFoodFile] = useState<File | null>(null)
   const [foodPreview, setFoodPreview] = useState(initial.thumbnailUrl)
@@ -155,7 +153,6 @@ export default function EditForm({ recipeId, initial }: Props) {
     fd.append('instructions', instructions)
     fd.append('ingredients', JSON.stringify(ingredients.filter((i) => i.item.trim())))
     fd.append('tags', tags)
-    fd.append('promo_products', promoProducts)
     fd.append('existing_thumbnail_url', initial.thumbnailUrl)
     fd.append('existing_image_url', initial.imageUrl)
     if (foodFile) fd.append('food_photo', foodFile)
@@ -220,15 +217,9 @@ export default function EditForm({ recipeId, initial }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-1">
-              <label htmlFor="tags" className="text-sm font-medium text-zinc-700">Tags</label>
-              <input id="tags" type="text" value={tags} onChange={(e) => setTags(e.target.value)} className={inputClass} placeholder="quick, vegetarian, …" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="promo_products" className="text-sm font-medium text-zinc-700">Featured products</label>
-              <input id="promo_products" type="text" value={promoProducts} onChange={(e) => setPromoProducts(e.target.value)} className={inputClass} placeholder="Comma-separated" />
-            </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="tags" className="text-sm font-medium text-zinc-700">Tags</label>
+            <input id="tags" type="text" value={tags} onChange={(e) => setTags(e.target.value)} className={inputClass} placeholder="quick, vegetarian, …" />
           </div>
         </div>
       </section>

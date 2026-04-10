@@ -142,24 +142,6 @@ export default async function RecipeDetailPage({
             </div>
           )}
 
-          {recipe.promo_products?.length > 0 && (
-            <div>
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                Featured products
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {(recipe.promo_products as string[]).map((p) => (
-                  <span
-                    key={p}
-                    className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700"
-                  >
-                    {p}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
           {recipe.image_url && (
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
