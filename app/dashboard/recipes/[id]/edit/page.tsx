@@ -19,14 +19,18 @@ export default async function EditRecipePage({
   if (!user) redirect('/login')
 
   const admin = createAdminClient()
-  const { data: recipe } = await admin
-    .from('recipes')
-    .select('*')
-    .eq('id', id)
-    .single()
+  const [{ data: recipe }, { data: profile }] = await Promise.all([
+    admin.from('recipes').select('*').eq('id', id).single(),
+    admin.from('profiles').select('store_id, role').eq('id', user.id).single(),
+  ])
 
   if (!recipe) notFound()
-  if (recipe.uploaded_by !== user.id) notFound()
+
+  const canEdit =
+    recipe.uploaded_by === user.id ||
+    (profile?.role === 'admin' && profile?.store_id === recipe.store_id)
+
+  if (!canEdit) notFound()
 
   return (
     <div className="flex flex-col gap-6">

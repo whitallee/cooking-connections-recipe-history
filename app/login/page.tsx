@@ -10,10 +10,11 @@ export default function LoginPage() {
     <div className="flex min-h-[calc(100vh-57px)] items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <h1 className="mb-1 text-2xl font-semibold text-zinc-900">
-          Partner Login
+          Culinary Selling Partner Login
         </h1>
         <p className="mb-6 text-sm text-zinc-500">
-          Sign in to your Culinary Selling Partner account.
+          This page is for store partners only. Customers can browse recipes by
+          scanning the QR code in the kitchen.
         </p>
 
         <form action={formAction} className="flex flex-col gap-4">

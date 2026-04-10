@@ -93,7 +93,7 @@ export default async function StorePage({
       {/* Featured Section */}
       {featured && featured.length > 0 && (
         <section className="mb-10">
-          <div className="mb-4 flex items-center gap-2">
+          <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-700">
               ★ Currently Featured
             </span>
@@ -109,14 +109,33 @@ export default async function StorePage({
 
       {/* Search & Filter */}
       <section className="mb-6">
-        <form method="GET" className="flex flex-wrap gap-3">
-          <input
-            name="q"
-            type="search"
-            defaultValue={q ?? ''}
-            placeholder="Search recipes…"
-            className="min-w-0 flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-          />
+        <form method="GET" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          {/* Search input + action buttons */}
+          <div className="flex flex-1 gap-2">
+            <input
+              name="q"
+              type="search"
+              defaultValue={q ?? ''}
+              placeholder="Search recipes…"
+              className="min-w-0 flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+            />
+            <button
+              type="submit"
+              className="shrink-0 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 transition-colors"
+            >
+              Search
+            </button>
+            {hasFilter && (
+              <Link
+                href={`/${storeId}`}
+                className="shrink-0 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors"
+              >
+                Clear
+              </Link>
+            )}
+          </div>
+
+          {/* Date filters — own row on mobile, inline on sm+ */}
           <div className="flex items-center gap-2">
             <input
               name="from"
@@ -132,20 +151,6 @@ export default async function StorePage({
               className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-900"
             />
           </div>
-          <button
-            type="submit"
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 transition-colors"
-          >
-            Search
-          </button>
-          {hasFilter && (
-            <Link
-              href={`/${storeId}`}
-              className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors"
-            >
-              Clear
-            </Link>
-          )}
         </form>
       </section>
 

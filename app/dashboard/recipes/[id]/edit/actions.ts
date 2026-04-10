@@ -56,14 +56,18 @@ export async function updateRecipe(
   if (!user) return { error: 'Not authenticated.' }
 
   const admin = createAdminClient()
-  const { data: recipe } = await admin
-    .from('recipes')
-    .select('uploaded_by, store_id')
-    .eq('id', recipeId)
-    .single()
+  const [{ data: recipe }, { data: profile }] = await Promise.all([
+    admin.from('recipes').select('uploaded_by, store_id').eq('id', recipeId).single(),
+    admin.from('profiles').select('store_id, role').eq('id', user.id).single(),
+  ])
 
   if (!recipe) return { error: 'Recipe not found.' }
-  if (recipe.uploaded_by !== user.id) return { error: 'Not authorized.' }
+
+  const canEdit =
+    recipe.uploaded_by === user.id ||
+    (profile?.role === 'admin' && profile?.store_id === recipe.store_id)
+
+  if (!canEdit) return { error: 'Not authorized.' }
 
   const title = (formData.get('title') as string)?.trim()
   if (!title) return { error: 'Title is required.' }

@@ -19,13 +19,15 @@ export default async function RecipeDetailPage({
   const admin = createAdminClient()
   const [{ data: recipe }, { data: profile }] = await Promise.all([
     supabase.from('recipes').select('*').eq('id', id).single(),
-    user ? admin.from('profiles').select('store_id').eq('id', user.id).single() : Promise.resolve({ data: null }),
+    user ? admin.from('profiles').select('store_id, role').eq('id', user.id).single() : Promise.resolve({ data: null }),
   ])
 
   if (!recipe) notFound()
 
   const isOwner = recipe.uploaded_by === user?.id
   const isSameStore = profile?.store_id === recipe.store_id
+  const isAdmin = profile?.role === 'admin'
+  const canEdit = isOwner || (isAdmin && isSameStore)
   const today = new Date().toISOString().split('T')[0]
   const servedDates: string[] = (recipe.served_dates ?? []).slice().sort().reverse()
   const alreadyServedToday = servedDates.includes(today)
@@ -59,7 +61,7 @@ export default async function RecipeDetailPage({
             <p className="text-sm text-zinc-500">{recipe.description}</p>
           )}
         </div>
-        {isOwner && (
+        {canEdit && (
           <Link
             href={`/dashboard/recipes/${id}/edit`}
             className="shrink-0 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"

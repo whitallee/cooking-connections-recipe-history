@@ -42,6 +42,12 @@ export default async function DashboardPage() {
         >
           My Recipes
         </Link>
+        <Link
+          href={`/${profile?.store_id}`}
+          className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+        >
+          View Store Page
+        </Link>
       </div>
 
       <div>
