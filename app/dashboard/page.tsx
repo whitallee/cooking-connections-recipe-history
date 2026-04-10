@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import RecipeFallbackIcon from '@/components/RecipeFallbackIcon'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -15,7 +16,7 @@ export default async function DashboardPage() {
 
   const { data: recentRecipes } = await supabase
     .from('recipes')
-    .select('id, title, recipe_date, image_url')
+    .select('id, title, recipe_date, thumbnail_url')
     .eq('uploaded_by', user!.id)
     .order('created_at', { ascending: false })
     .limit(5)
@@ -63,12 +64,14 @@ export default async function DashboardPage() {
                 href={`/dashboard/recipes/${recipe.id}`}
                 className="flex items-center gap-4 px-4 py-3 hover:bg-zinc-50 transition-colors"
               >
-                {recipe.image_url && (
+                {recipe.thumbnail_url ? (
                   <img
-                    src={recipe.image_url}
+                    src={recipe.thumbnail_url}
                     alt={recipe.title}
-                    className="h-12 w-12 rounded-md object-cover"
+                    className="h-12 w-12 shrink-0 rounded-md object-cover"
                   />
+                ) : (
+                  <RecipeFallbackIcon className="h-12 w-12 shrink-0" />
                 )}
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-zinc-900">

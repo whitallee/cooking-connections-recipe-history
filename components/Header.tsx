@@ -14,11 +14,12 @@ export default async function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link href="/" className="flex items-center gap-3">
           <Image
-            src="/cookingconnections.jpeg"
+            src="/cookingconnectionslogo.png"
             alt="Cooking Connections logo"
             width={40}
             height={40}
             className="rounded-full"
+            style={{ width: '40px', height: '40px' }}
           />
           <div className='flex flex-col'>
             <span className="text-lg font-semibold text-zinc-900">

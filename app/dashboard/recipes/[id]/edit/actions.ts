@@ -3,29 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
-
-async function normaliseImage(
-  file: File
-): Promise<{ buffer: Buffer; contentType: string; ext: string }> {
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
-  const isHeic =
-    file.type === 'image/heic' ||
-    file.type === 'image/heif' ||
-    ext === 'heic' ||
-    ext === 'heif'
-
-  if (isHeic) {
-    const { default: convert } = await import('heic-convert')
-    const converted = await convert({
-      buffer: await file.arrayBuffer(),
-      format: 'JPEG',
-      quality: 0.9,
-    })
-    return { buffer: Buffer.from(converted), contentType: 'image/jpeg', ext: 'jpg' }
-  }
-
-  return { buffer: Buffer.from(await file.arrayBuffer()), contentType: file.type, ext }
-}
+import { normaliseImage } from '@/lib/images'
 
 async function uploadToStorage(
   buffer: Buffer,

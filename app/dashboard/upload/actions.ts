@@ -4,33 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import OpenAI from 'openai'
-
-// ─── Helpers ─────────────────────────────────────────────────
-
-async function normaliseImage(
-  file: File
-): Promise<{ buffer: Buffer; contentType: string; ext: string }> {
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
-  const isHeic =
-    file.type === 'image/heic' ||
-    file.type === 'image/heif' ||
-    ext === 'heic' ||
-    ext === 'heif'
-
-  if (isHeic) {
-    const { default: convert } = await import('heic-convert')
-    // Pass ArrayBuffer directly — heic-convert types expect ArrayBufferLike, not Buffer
-    const arrayBuffer = await file.arrayBuffer()
-    const converted = await convert({ buffer: arrayBuffer, format: 'JPEG', quality: 0.9 })
-    return { buffer: Buffer.from(converted), contentType: 'image/jpeg', ext: 'jpg' }
-  }
-
-  return {
-    buffer: Buffer.from(await file.arrayBuffer()),
-    contentType: file.type,
-    ext,
-  }
-}
+import { normaliseImage } from '@/lib/images'
 
 async function uploadToStorage(
   buffer: Buffer,
@@ -74,7 +48,7 @@ export async function extractFromCard(
   const file = formData.get('card') as File
   if (!file?.size) return { error: 'No file provided.' }
 
-  const { buffer, contentType, ext } = await normaliseImage(file)
+  const { buffer, contentType, ext } = await normaliseImage(file, { maxPx: 2000, quality: 90 })
   const path = `${profile.store_id}/cards/${crypto.randomUUID()}.${ext}`
   const cardUrl = await uploadToStorage(buffer, path, contentType)
   if (!cardUrl) return { error: 'Failed to upload image. Please try again.' }

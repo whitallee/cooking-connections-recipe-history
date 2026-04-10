@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Ingredient } from '@/lib/supabase/types'
 import LogServingButton from './LogServingButton'
+import DeleteButton from './DeleteButton'
 
 export default async function RecipeDetailPage({
   params,
@@ -62,12 +63,15 @@ export default async function RecipeDetailPage({
           )}
         </div>
         {canEdit && (
-          <Link
-            href={`/dashboard/recipes/${id}/edit`}
-            className="shrink-0 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
-          >
-            Edit
-          </Link>
+          <div className="flex shrink-0 gap-2">
+            <Link
+              href={`/dashboard/recipes/${id}/edit`}
+              className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+            >
+              Edit
+            </Link>
+            <DeleteButton recipeId={id} />
+          </div>
         )}
       </div>
 
