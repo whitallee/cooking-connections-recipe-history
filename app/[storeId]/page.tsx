@@ -82,6 +82,14 @@ export default async function StorePage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
 
+      {/* Store header */}
+      <div className="mb-8">
+        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+          {store.name}
+        </p>
+        <h1 className="mt-1 text-2xl font-semibold text-zinc-900">Recipe History</h1>
+      </div>
+
       {/* Featured Section */}
       {featured && featured.length > 0 && (
         <section className="mb-10">

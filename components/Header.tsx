@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import Image from 'next/image'
 import SignOutButton from './SignOutButton'
 
 export default async function Header() {
@@ -12,13 +13,21 @@ export default async function Header() {
     <header className="border-b border-zinc-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link href="/" className="flex items-center gap-3">
-          {/* Logo placeholder — replace with <Image src="/logo.png" ... /> once you have the asset */}
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-100 text-[10px] font-semibold text-zinc-400">
-            LOGO
-          </div>
-          <span className="text-lg font-semibold text-zinc-900">
+          <Image
+            src="/cookingconnections.jpeg"
+            alt="Cooking Connections logo"
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
+          <div className='flex flex-col'>
+            <span className="text-lg font-semibold text-zinc-900">
             Cooking Connections
-          </span>
+            </span>
+            <span className="text-sm font-semibold text-zinc-700">
+            Recipe History
+            </span>
+          </div>
         </Link>
 
         <nav className="flex items-center gap-5 text-sm">
