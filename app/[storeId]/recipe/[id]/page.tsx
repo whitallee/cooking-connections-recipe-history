@@ -1,0 +1,162 @@
+import { createAdminClient } from '@/lib/supabase/admin'
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import SavePhotoButton from '@/components/SavePhotoButton'
+import type { Ingredient } from '@/lib/supabase/types'
+
+export default async function CustomerRecipePage({
+  params,
+}: {
+  params: Promise<{ storeId: string; id: string }>
+}) {
+  const { storeId, id } = await params
+  const admin = createAdminClient()
+
+  const { data: recipe } = await admin
+    .from('recipes')
+    .select('*')
+    .eq('id', id)
+    .eq('store_id', storeId)
+    .single()
+
+  if (!recipe) notFound()
+
+  const slug = recipe.title.toLowerCase().replace(/\s+/g, '-')
+
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-8">
+      {/* Breadcrumb */}
+      <nav className="mb-6 text-sm text-zinc-500">
+        <Link href={`/${storeId}`} className="hover:text-zinc-900 transition-colors">
+          ← Back to recipes
+        </Link>
+      </nav>
+
+      {/* Title */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-semibold text-zinc-900">{recipe.title}</h1>
+        <p className="mt-1 text-sm text-zinc-500">{recipe.recipe_date}</p>
+        {recipe.description && (
+          <p className="mt-3 text-zinc-600">{recipe.description}</p>
+        )}
+      </div>
+
+      {/* Food photo */}
+      {recipe.thumbnail_url && (
+        <img
+          src={recipe.thumbnail_url}
+          alt={recipe.title}
+          className="mb-6 w-full rounded-xl object-cover max-h-96"
+        />
+      )}
+
+      {/* Meta row */}
+      <div className="mb-6 flex flex-wrap gap-4 text-sm text-zinc-600">
+        {recipe.servings && (
+          <span className="flex items-center gap-1">
+            <span className="text-zinc-400">Serves</span> {recipe.servings}
+          </span>
+        )}
+        {recipe.prep_time && (
+          <span className="flex items-center gap-1">
+            <span className="text-zinc-400">Prep</span> {recipe.prep_time}
+          </span>
+        )}
+        {recipe.cook_time && (
+          <span className="flex items-center gap-1">
+            <span className="text-zinc-400">Cook</span> {recipe.cook_time}
+          </span>
+        )}
+      </div>
+
+      {/* Tags */}
+      {recipe.tags?.length > 0 && (
+        <div className="mb-6 flex flex-wrap gap-1">
+          {(recipe.tags as string[]).map((tag: string) => (
+            <span
+              key={tag}
+              className="rounded-full bg-zinc-100 px-3 py-1 text-xs text-zinc-600"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Featured products */}
+      {recipe.promo_products?.length > 0 && (
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-700">
+            On sale this week
+          </p>
+          <p className="text-sm text-amber-900">
+            {(recipe.promo_products as string[]).join(' · ')}
+          </p>
+        </div>
+      )}
+
+      {/* Ingredients + Instructions */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr]">
+        {recipe.ingredients?.length > 0 && (
+          <div>
+            <h2 className="mb-3 text-lg font-semibold text-zinc-900">Ingredients</h2>
+            <ul className="flex flex-col gap-2">
+              {(recipe.ingredients as Ingredient[]).map((ing, i) => (
+                <li key={i} className="flex gap-2 text-sm">
+                  <span className="w-24 shrink-0 text-zinc-400">
+                    {ing.quantity} {ing.unit}
+                  </span>
+                  <span className="text-zinc-700">{ing.item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {recipe.instructions && (
+          <div>
+            <h2 className="mb-3 text-lg font-semibold text-zinc-900">Instructions</h2>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-zinc-700">
+              {recipe.instructions}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Recipe card + save buttons */}
+      {(recipe.image_url || recipe.thumbnail_url) && (
+        <div className="mt-10 border-t border-zinc-200 pt-8">
+          {recipe.image_url && (
+            <div className="mb-6">
+              <h2 className="mb-3 text-base font-semibold text-zinc-900">
+                Recipe card
+              </h2>
+              <img
+                src={recipe.image_url}
+                alt="Recipe card"
+                className="w-full rounded-lg border border-zinc-200"
+              />
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-3">
+            {recipe.image_url && (
+              <SavePhotoButton
+                url={recipe.image_url}
+                filename={`${slug}-recipe-card.jpg`}
+                label="Save recipe card"
+              />
+            )}
+            {recipe.thumbnail_url && (
+              <SavePhotoButton
+                url={recipe.thumbnail_url}
+                filename={`${slug}-photo.jpg`}
+                label="Save food photo"
+              />
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

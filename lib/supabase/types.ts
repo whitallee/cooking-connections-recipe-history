@@ -35,7 +35,8 @@ export interface Recipe {
   cook_time: string | null
   tags: string[]
   promo_products: string[]
-  image_url: string
+  image_url: string | null
+  thumbnail_url: string | null
   raw_ocr_data: Record<string, unknown> | null
   recipe_date: string
   is_featured: boolean

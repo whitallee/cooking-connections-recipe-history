@@ -35,7 +35,8 @@ CREATE TABLE recipes (
   cook_time       TEXT,
   tags            TEXT[] NOT NULL DEFAULT '{}',
   promo_products  TEXT[] NOT NULL DEFAULT '{}',
-  image_url       TEXT NOT NULL,
+  image_url       TEXT,              -- recipe card photo, nullable (manual entry allowed)
+  thumbnail_url   TEXT,              -- food photo shown in recipe lists
   raw_ocr_data    JSONB,
   recipe_date     DATE NOT NULL DEFAULT CURRENT_DATE,
   is_featured     BOOLEAN NOT NULL DEFAULT FALSE,
