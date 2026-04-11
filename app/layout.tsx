@@ -9,8 +9,9 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Cooking Connections — Recipe History",
-  description: "Browse past recipes from the Cooking Connections sampling kitchen.",
+  title: "Recipe History",
+  // title: "Cooking Connections — Recipe History",
+  description: "Browse past recipes from the sampling kitchen.",
 };
 
 export default function RootLayout({

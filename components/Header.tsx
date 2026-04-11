@@ -13,20 +13,20 @@ export default async function Header() {
     <header className="border-b border-zinc-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link href="/" className="flex items-center gap-3">
-          <Image
+          {/* <Image
             src="/cookingconnectionslogo.png"
             alt="Cooking Connections logo"
             width={40}
             height={40}
             className="rounded-full"
             style={{ width: '40px', height: '40px' }}
-          />
+          /> */}
           <div className='flex flex-col'>
             <span className="text-lg font-semibold text-zinc-900">
-            Cooking Connections
+            Recipe History
             </span>
             <span className="text-sm font-semibold text-zinc-700">
-            Recipe History
+            {/* Recipe History */}
             </span>
           </div>
         </Link>
