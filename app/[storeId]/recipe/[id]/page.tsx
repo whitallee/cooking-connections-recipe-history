@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import SavePhotoButton from '@/components/SavePhotoButton'
+import ShareButton from '@/components/ShareButton'
 import type { Ingredient } from '@/lib/supabase/types'
 
 export default async function CustomerRecipePage({
@@ -43,7 +44,10 @@ export default async function CustomerRecipePage({
 
       {/* Title */}
       <div className="mb-6">
-        <h1 className="text-3xl font-semibold text-zinc-900">{recipe.title}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-3xl font-semibold text-zinc-900">{recipe.title}</h1>
+          <ShareButton title={recipe.title} />
+        </div>
         <p className="mt-1 text-sm text-zinc-500">{recipe.recipe_date}</p>
         {recipe.description && (
           <p className="mt-3 text-zinc-600">{recipe.description}</p>
