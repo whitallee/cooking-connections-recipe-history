@@ -11,11 +11,13 @@ function PhotoInput({
   label,
   preview,
   onChange,
+  onRemove,
 }: {
   id: string
   label: string
   preview: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onRemove?: () => void
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -28,19 +30,30 @@ function PhotoInput({
             alt="Preview"
             className="max-h-64 w-full rounded-lg border border-zinc-200 object-contain bg-zinc-50"
           />
-          <label
-            htmlFor={id}
-            className="absolute bottom-2 right-2 cursor-pointer rounded-md bg-white/90 px-2 py-1 text-xs font-medium text-zinc-700 shadow hover:bg-white transition-colors"
-          >
-            Replace
-            <input
-              id={id}
-              type="file"
-              accept="image/*,image/heic,image/heif"
-              className="sr-only"
-              onChange={onChange}
-            />
-          </label>
+          <div className="absolute bottom-2 right-2 flex gap-1.5">
+            {onRemove && (
+              <button
+                type="button"
+                onClick={onRemove}
+                className="rounded-md bg-white/90 px-2 py-1 text-xs font-medium text-red-600 shadow hover:bg-white transition-colors"
+              >
+                Remove
+              </button>
+            )}
+            <label
+              htmlFor={id}
+              className="cursor-pointer rounded-md bg-white/90 px-2 py-1 text-xs font-medium text-zinc-700 shadow hover:bg-white transition-colors"
+            >
+              Replace
+              <input
+                id={id}
+                type="file"
+                accept="image/*,image/heic,image/heif"
+                className="sr-only"
+                onChange={onChange}
+              />
+            </label>
+          </div>
         </div>
       ) : (
         <label
@@ -98,6 +111,7 @@ export default function EditForm({ recipeId, initial }: Props) {
 
   const [cardFile, setCardFile] = useState<File | null>(null)
   const [cardPreview, setCardPreview] = useState(initial.imageUrl)
+  const [removeCard, setRemoveCard] = useState(false)
 
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
@@ -154,9 +168,9 @@ export default function EditForm({ recipeId, initial }: Props) {
     fd.append('ingredients', JSON.stringify(ingredients.filter((i) => i.item.trim())))
     fd.append('tags', tags)
     fd.append('existing_thumbnail_url', initial.thumbnailUrl)
-    fd.append('existing_image_url', initial.imageUrl)
+    fd.append('existing_image_url', removeCard ? '' : initial.imageUrl)
     if (foodFile) fd.append('food_photo', foodFile)
-    if (cardFile) fd.append('card_photo', cardFile)
+    if (!removeCard && cardFile) fd.append('card_photo', cardFile)
 
     const result = await updateRecipe(recipeId, fd)
     if (result?.error) {
@@ -282,6 +296,11 @@ export default function EditForm({ recipeId, initial }: Props) {
             label="Recipe card"
             preview={cardPreview}
             onChange={handleCardChange}
+            onRemove={() => {
+              setCardFile(null)
+              setCardPreview('')
+              setRemoveCard(true)
+            }}
           />
         </div>
       </section>
